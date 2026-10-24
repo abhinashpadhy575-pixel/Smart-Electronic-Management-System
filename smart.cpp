@@ -1,342 +1,330 @@
 #include <iostream>
-#include <vector>
 #include <string>
-#include <iomanip>
+#include <limits>
 using namespace std;
 
-class ElectronicProduct {
+class Product {
 protected:
-    int id;
-    string name;
-    string brand;
+    int id, quantity;
+    string name, brand;
     double price;
-    int quantity;
 
 public:
-    ElectronicProduct(int i, string n, string b, double p, int q)
-        : id(i), name(n), brand(b), price(p), quantity(q) {}
-
-    virtual void display() const {
-        cout << left << setw(8) << id
-             << setw(22) << name
-             << setw(15) << brand
-             << setw(12) << price
-             << setw(10) << quantity << endl;
+    Product() {
+        id = 0;
+        quantity = 0;
+        price = 0;
     }
 
-    int getId() const {
-        return id;
+    Product(int i, string n, string b, double p, int q) {
+        id = i;
+        name = n;
+        brand = b;
+        price = p;
+        quantity = q;
     }
 
-    string getName() const {
-        return name;
+    virtual ~Product() {}
+
+    virtual void display() {
+        cout << "\nID: " << id;
+        cout << "\nName: " << name;
+        cout << "\nBrand: " << brand;
+        cout << "\nPrice: " << price;
+        cout << "\nQuantity: " << quantity << endl;
     }
 
-    double getPrice() const {
-        return price;
-    }
-
-    int getQuantity() const {
-        return quantity;
-    }
-
-    void updateQuantity(int q) {
+    void addStock(int q) {
         quantity += q;
     }
 
-    virtual double getDiscount() const {
-        return 0;
+    void sellProduct(int q) {
+        if (q <= quantity)
+            quantity -= q;
+        else
+            cout << "Insufficient stock!\n";
     }
 
-    virtual ~ElectronicProduct() {}
+    int getId() {
+        return id;
+    }
 };
-
-class Smartphone : public ElectronicProduct {
-    string operatingSystem;
+class Smartphone : public Product {
+    string os;
+    int storage;
 
 public:
-    Smartphone(int i, string n, string b, double p, int q, string os)
-        : ElectronicProduct(i, n, b, p, q), operatingSystem(os) {}
-
-    void display() const override {
-        ElectronicProduct::display();
-        cout << "   OS: " << operatingSystem << endl;
+    Smartphone(int i, string n, string b, double p,
+               int q, string o, int s)
+        : Product(i, n, b, p, q) {
+        os = o;
+        storage = s;
     }
 
-    double getDiscount() const override {
-        return price * 0.10;
+    ~Smartphone() {}
+
+    void display() override {
+        Product::display();
+        cout << "OS: " << os;
+        cout << "\nStorage: " << storage << " GB\n";
     }
 };
 
-class Laptop : public ElectronicProduct {
+class Laptop : public Product {
+    string processor;
     int ram;
 
 public:
-    Laptop(int i, string n, string b, double p, int q, int r)
-        : ElectronicProduct(i, n, b, p, q), ram(r) {}
-
-    void display() const override {
-        ElectronicProduct::display();
-        cout << "   RAM: " << ram << " GB" << endl;
+    Laptop(int i, string n, string b, double p,
+           int q, string cpu, int r)
+        : Product(i, n, b, p, q) {
+        processor = cpu;
+        ram = r;
     }
 
-    double getDiscount() const override {
-        return price * 0.15;
-    }
-};
+    ~Laptop() {}
 
-class Television : public ElectronicProduct {
-    double screenSize;
-
-public:
-    Television(int i, string n, string b, double p, int q, double s)
-        : ElectronicProduct(i, n, b, p, q), screenSize(s) {}
-
-    void display() const override {
-        ElectronicProduct::display();
-        cout << "   Screen: " << screenSize << " inches" << endl;
-    }
-
-    double getDiscount() const override {
-        return price * 0.12;
+    void display() override {
+        Product::display();
+        cout << "Processor: " << processor;
+        cout << "\nRAM: " << ram << " GB\n";
     }
 };
 
-class ProductManager {
-private:
-    vector<ElectronicProduct*> products;
+class Inventory {
+    Product* products[50];
+    int count;
 
 public:
-    ~ProductManager() {
-        for (auto p : products)
-            delete p;
+    Inventory() {
+        count = 0;
     }
 
-    void addProduct() {
-        int type, id, quantity;
-        string name, brand;
-        double price;
-
-        cout << "\n1. Smartphone\n2. Laptop\n3. Television\n";
-        cout << "Enter product type: ";
-        cin >> type;
-
-        cout << "Enter ID: ";
-        cin >> id;
-
-        cout << "Enter name: ";
-        cin.ignore();
-        getline(cin, name);
-
-        cout << "Enter brand: ";
-        getline(cin, brand);
-
-        cout << "Enter price: ";
-        cin >> price;
-
-        cout << "Enter quantity: ";
-        cin >> quantity;
-
-        if (type == 1) {
-            string os;
-            cout << "Enter Operating System: ";
-            cin >> os;
-            products.push_back(
-                new Smartphone(id, name, brand, price, quantity, os)
-            );
-        }
-        else if (type == 2) {
-            int ram;
-            cout << "Enter RAM (GB): ";
-            cin >> ram;
-            products.push_back(
-                new Laptop(id, name, brand, price, quantity, ram)
-            );
-        }
-        else if (type == 3) {
-            double size;
-            cout << "Enter Screen Size (inches): ";
-            cin >> size;
-            products.push_back(
-                new Television(id, name, brand, price, quantity, size)
-            );
-        }
-        else {
-            cout << "Invalid product type.\n";
-            return;
-        }
-
-        cout << "Product added successfully.\n";
+    ~Inventory() {
+        for (int i = 0; i < count; i++)
+            delete products[i];
     }
 
-    void displayProducts() const {
-        if (products.empty()) {
+    void addProduct(Product* p) {
+        if (count < 50) {
+            products[count++] = p;
+            cout << "\nProduct added successfully!\n";
+        }
+    }
+
+    void displayAll() {
+        if (count == 0) {
             cout << "\nNo products available.\n";
             return;
         }
 
-        cout << "\n";
-        cout << left << setw(8) << "ID"
-             << setw(22) << "Name"
-             << setw(15) << "Brand"
-             << setw(12) << "Price"
-             << setw(10) << "Quantity" << endl;
-
-        cout << string(67, '-') << endl;
-
-        for (const auto& p : products)
-            p->display();
+        for (int i = 0; i < count; i++) {
+            cout << "\n--------------------\n";
+            products[i]->display();
+        }
     }
 
-    ElectronicProduct* findProduct(int id) {
-        for (auto p : products) {
-            if (p->getId() == id)
-                return p;
+    Product* searchProduct(int id) {
+        for (int i = 0; i < count; i++) {
+            if (products[i]->getId() == id)
+                return products[i];
         }
+
         return nullptr;
     }
 
-    void searchProduct() {
-        int id;
-        cout << "Enter product ID: ";
-        cin >> id;
+    void sell(int id, int q) {
+        Product* p = searchProduct(id);
 
-        ElectronicProduct* p = findProduct(id);
-
-        if (p) {
-            cout << "\nProduct Found:\n";
-            p->display();
-        }
-        else {
+        if (p != nullptr)
+            p->sellProduct(q);
+        else
             cout << "Product not found.\n";
-        }
     }
 
-    void updateStock() {
-        int id, quantity;
+    void restock(int id, int q) {
+        Product* p = searchProduct(id);
 
-        cout << "Enter product ID: ";
-        cin >> id;
-
-        ElectronicProduct* p = findProduct(id);
-
-        if (!p) {
+        if (p != nullptr)
+            p->addStock(q);
+        else
             cout << "Product not found.\n";
-            return;
-        }
-
-        cout << "Enter quantity to add/remove: ";
-        cin >> quantity;
-
-        if (p->getQuantity() + quantity < 0) {
-            cout << "Insufficient stock.\n";
-            return;
-        }
-
-        p->updateQuantity(quantity);
-        cout << "Stock updated successfully.\n";
-    }
-
-    void purchaseProduct() {
-        int id, quantity;
-
-        cout << "Enter product ID: ";
-        cin >> id;
-
-        ElectronicProduct* p = findProduct(id);
-
-        if (!p) {
-            cout << "Product not found.\n";
-            return;
-        }
-
-        cout << "Enter quantity: ";
-        cin >> quantity;
-
-        if (quantity <= 0 || quantity > p->getQuantity()) {
-            cout << "Invalid quantity.\n";
-            return;
-        }
-
-        double total = p->getPrice() * quantity;
-        double discount = p->getDiscount() * quantity;
-        double finalAmount = total - discount;
-
-        p->updateQuantity(-quantity);
-
-        cout << fixed << setprecision(2);
-        cout << "\nPurchase Details\n";
-        cout << "Product: " << p->getName() << endl;
-        cout << "Quantity: " << quantity << endl;
-        cout << "Total: " << total << endl;
-        cout << "Discount: " << discount << endl;
-        cout << "Final Amount: " << finalAmount << endl;
-        cout << "Purchase successful.\n";
-    }
-
-    void deleteProduct() {
-        int id;
-        cout << "Enter product ID: ";
-        cin >> id;
-
-        for (auto it = products.begin(); it != products.end(); ++it) {
-            if ((*it)->getId() == id) {
-                delete *it;
-                products.erase(it);
-                cout << "Product deleted successfully.\n";
-                return;
-            }
-        }
-
-        cout << "Product not found.\n";
-    }
-
-    void showMenu() {
-        int choice;
-
-        do {
-            cout << "\n========== SMART ELECTRONIC PRODUCT MANAGEMENT SYSTEM ==========\n";
-            cout << "1. Add Product\n";
-            cout << "2. Display All Products\n";
-            cout << "3. Search Product\n";
-            cout << "4. Update Stock\n";
-            cout << "5. Purchase Product\n";
-            cout << "6. Delete Product\n";
-            cout << "7. Exit\n";
-            cout << "Enter your choice: ";
-            cin >> choice;
-
-            switch (choice) {
-                case 1:
-                    addProduct();
-                    break;
-                case 2:
-                    displayProducts();
-                    break;
-                case 3:
-                    searchProduct();
-                    break;
-                case 4:
-                    updateStock();
-                    break;
-                case 5:
-                    purchaseProduct();
-                    break;
-                case 6:
-                    deleteProduct();
-                    break;
-                case 7:
-                    cout << "Program terminated.\n";
-                    break;
-                default:
-                    cout << "Invalid choice.\n";
-            }
-        } while (choice != 7);
     }
 };
 
+void menu() {
+    cout << "\n============================================";
+    cout << "\n SMART ELECTRONIC PRODUCT MANAGEMENT SYSTEM";
+    cout << "\n============================================";
+    cout << "\n1. Add Smartphone";
+    cout << "\n2. Add Laptop";
+    cout << "\n3. Display All Products";
+    cout << "\n4. Search Product";
+    cout << "\n5. Sell Product";
+    cout << "\n6. Restock Product";
+    cout << "\n7. Exit";
+    cout << "\nEnter choice: ";
+}
+
 int main() {
-    ProductManager manager;
-    manager.showMenu();
+
+    Inventory inventory;
+
+    void (Inventory::*ptr)() = &Inventory::displayAll;
+
+    int choice;
+
+    do {
+
+        menu();
+
+        while (!(cin >> choice)) {
+            cout << "Invalid input! Enter a number from 1 to 7: ";
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+
+        switch (choice) {
+
+        case 1: {
+            int id, quantity, storage;
+            string name, brand, os;
+            double price;
+
+            cout << "\nEnter ID: ";
+            cin >> id;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            cout << "Enter Name: ";
+            getline(cin, name);
+
+            cout << "Enter Brand: ";
+            getline(cin, brand);
+
+            cout << "Enter Price: ";
+            cin >> price;
+
+            cout << "Enter Quantity: ";
+            cin >> quantity;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            cout << "Enter Operating System: ";
+            getline(cin, os);
+
+            cout << "Enter Storage (GB): ";
+            cin >> storage;
+
+            inventory.addProduct(
+                new Smartphone(
+                    id,
+                    name,
+                    brand,
+                    price,
+                    quantity,
+                    os,
+                    storage
+                )
+            );
+
+            break;
+        }
+
+        case 2: {
+            int id, quantity, ram;
+            string name, brand, processor;
+            double price;
+
+            cout << "\nEnter ID: ";
+            cin >> id;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            cout << "Enter Name: ";
+            getline(cin, name);
+
+            cout << "Enter Brand: ";
+            getline(cin, brand);
+
+            cout << "Enter Price: ";
+            cin >> price;
+
+            cout << "Enter Quantity: ";
+            cin >> quantity;
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            cout << "Enter Processor: ";
+            getline(cin, processor);
+
+            cout << "Enter RAM (GB): ";
+            cin >> ram;
+
+            inventory.addProduct(
+                new Laptop(
+                    id,
+                    name,
+                    brand,
+                    price,
+                    quantity,
+                    processor,
+                    ram
+                )
+            );
+
+            break;
+        }
+
+        case 3:
+            (inventory.*ptr)();
+            break;
+
+        case 4: {
+            int id;
+
+            cout << "\nEnter Product ID: ";
+            cin >> id;
+
+            Product* p = inventory.searchProduct(id);
+            if (p != nullptr)
+                p->display();
+            else
+                cout << "Product not found.\n";
+
+            break;
+        }
+        case 5: {
+            int id, quantity;
+
+            cout << "\nEnter Product ID: ";
+            cin >> id;
+
+            cout << "Enter Quantity: ";
+            cin >> quantity;
+            inventory.sell(id, quantity);
+            break;
+        }
+
+        case 6: {
+            int id, quantity;
+
+            cout << "\nEnter Product ID: ";
+            cin >> id;
+
+            cout << "Enter Quantity: ";
+            cin >> quantity;
+
+            inventory.restock(id, quantity);
+
+            break;
+        }
+
+        case 7:
+            cout << "\nProgram exited successfully.\n";
+            break;
+
+        default:
+            cout << "\nInvalid choice! Please select 1-7.\n";
+        }
+
+    } while (choice != 7);
+
     return 0;
 }
